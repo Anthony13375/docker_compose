@@ -1,0 +1,6 @@
+groups:
+  - name: Netology
+    rules:
+      - alert: Danger
+        expr: gerasimov_ai{job="netology"} > 1
+        for: 10s
