@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  gerasimov-ai-netology-prometheus:
+    image: prom/prometheus:v2.36.2
+    container_name: gerasimov-ai-netology-prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    links:
+      - gerasimov-ai-netology-pushgateway:pushgateway
+    depends_on:
+      - gerasimov-ai-netology-pushgateway
+    networks:
+      - gerasimov-ai-my-netology-hw
+    restart: always
+
+  gerasimov-ai-netology-pushgateway:
+    image: prom/pushgateway
+    container_name: gerasimov-ai-netology-pushgateway
+    restart: always
+    expose:
+      - 9091
+    ports:
+      - "9091:9091"
+    networks:
+      - gerasimov-ai-my-netology-hw
+
+  gerasimov-ai-netology-grafana:
+    image: grafana/grafana
+    container_name: gerasimov-ai-netology-grafana
+    depends_on:
+      - gerasimov-ai-netology-prometheus
+    ports:
+      - 80:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/custom.ini:/etc/grafana/custom.ini:ro
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/custom.ini
+    networks:
+      - gerasimov-ai-my-netology-hw
+    restart: always
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks:
+  gerasimov-ai-my-netology-hw:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
